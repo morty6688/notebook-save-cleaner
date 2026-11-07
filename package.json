@@ -1,0 +1,133 @@
+{
+  "name": "notebook-save-cleaner",
+  "displayName": "Notebook Save Cleaner",
+  "description": "Clean Jupyter execution counts and metadata on save while keeping outputs.",
+  "version": "0.1.1",
+  "publisher": "morty-local",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Notebooks"
+  ],
+  "license": "MIT",
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "onNotebook:jupyter-notebook"
+  ],
+  "scripts": {
+    "test": "node --test test/unit.test.js",
+    "package": "vsce package --allow-missing-repository"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.6.0"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "notebookSaveCleaner.clean",
+        "title": "Notebook Save Cleaner: Clean Current Notebook"
+      },
+      {
+        "command": "notebookSaveCleaner.enable",
+        "title": "Notebook Save Cleaner: Enable for This Workspace"
+      }
+    ],
+    "configuration": {
+      "title": "Notebook Save Cleaner",
+      "properties": {
+        "notebookSaveCleaner.enabled": {
+          "type": "boolean",
+          "default": false,
+          "scope": "resource",
+          "description": "Enable automatic cleaning in this workspace. Manual cleaning remains available."
+        },
+        "notebookSaveCleaner.trigger": {
+          "type": "string",
+          "enum": [
+            "onSave",
+            "manual"
+          ],
+          "default": "onSave",
+          "scope": "resource",
+          "description": "Clean before saving, or only via the command."
+        },
+        "notebookSaveCleaner.clearExecutionCounts": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "Clear both cell execution_count and output executionCount."
+        },
+        "notebookSaveCleaner.clearNotebookMetadata": {
+          "type": "boolean",
+          "default": false,
+          "scope": "resource",
+          "description": "Remove notebook metadata except preserved keys."
+        },
+        "notebookSaveCleaner.preserveNotebookMetadata": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "kernelspec",
+            "language_info",
+            "widgets"
+          ],
+          "scope": "resource",
+          "description": "Top-level notebook metadata keys to keep (widgets preserves interactive output state)."
+        },
+        "notebookSaveCleaner.clearCellMetadata": {
+          "type": "boolean",
+          "default": false,
+          "scope": "resource",
+          "description": "Remove cell metadata except preserved keys. Attachments and cell IDs are always retained."
+        },
+        "notebookSaveCleaner.preserveCellMetadata": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "tags",
+            "vscode"
+          ],
+          "scope": "resource",
+          "description": "Top-level cell metadata keys to keep. vscode can contain cell language information."
+        },
+        "notebookSaveCleaner.clearOutputMetadata": {
+          "type": "boolean",
+          "default": false,
+          "scope": "resource",
+          "description": "Clear display metadata while preserving output types, data and transient display IDs."
+        },
+        "notebookSaveCleaner.preserveOutputMetadata": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "resource",
+          "description": "Top-level output metadata keys to keep (for example image/png for image dimensions)."
+        },
+        "notebookSaveCleaner.skipWhileRunning": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "Skip cleaning when execution is observed or Jupyter reports a non-idle kernel. Save again after execution finishes."
+        },
+        "notebookSaveCleaner.clearExecutionTiming": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "Remove cell metadata.execution and metadata.ExecuteTime timing records. Preserve other metadata by default."
+        }
+      }
+    }
+  }
+}

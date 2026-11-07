@@ -1,0 +1,7 @@
+.git/**
+.test-work/**
+test/**
+node_modules/**
+package-lock.json
+*.vsix
+!CONTRIBUTING.md
