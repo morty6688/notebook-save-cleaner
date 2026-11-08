@@ -3,6 +3,22 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { defaults, cleanCellMetadata, cleanOutputMetadata, buildEdits } = require('../src/cleaner');
 
+test('language nameOnly preserves other metadata and never mutates input', () => {
+  const { cleanNotebookMetadata, normalizeNotebook } = require('../src/cleaner');
+  const metadata = { language_info: { name: 'python', version: '3.12', codemirror_mode: { name: 'ipython', version: 3 } }, kernelspec: { name: 'python3' }, custom: { keep: true } };
+  const options = { ...defaults, languageInfoMode: 'nameOnly' };
+  assert.deepEqual(cleanNotebookMetadata(metadata, defaults), metadata);
+  const cleaned = cleanNotebookMetadata(metadata, options);
+  assert.deepEqual(cleaned, { ...metadata, language_info: { name: 'python' } });
+  assert.equal(metadata.language_info.version, '3.12');
+  assert.deepEqual(cleanNotebookMetadata(cleaned, options), cleaned);
+  assert.deepEqual(normalizeNotebook({ nbformat: 4, metadata, cells: [] }, options).metadata, cleaned);
+  for (const value of [undefined, {}, { language_info: { version: '3.12' } }, { language_info: null }]) {
+    assert.deepEqual(cleanNotebookMetadata(value, options), value);
+  }
+  assert.deepEqual(cleanNotebookMetadata(metadata, { ...options, clearNotebookMetadata: true, preserveNotebookMetadata: ['custom'] }), { custom: { keep: true } });
+});
+
 test('default policy removes only execution noise and supports opting out', () => {
   const original = { execution_count: 9, metadata: { execution: { started: 'now' }, ExecuteTime: { end: 'later' }, slideshow: { slide_type: 'slide' }, editable: false, custom: { keep: true }, collapsed: true } };
   const cleaned = cleanCellMetadata(original, defaults);

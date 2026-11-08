@@ -1,38 +1,40 @@
 # Notebook Save Cleaner
 
-在 VS Code 保存 Jupyter notebook 时清理执行计数和执行时间，保留代码、Markdown 与运行结果，减少重复运行产生的 Git 差异。
+**English** | [简体中文](README.zh-CN.md)
 
-扩展直接清理本地保存的 `.ipynb` 文件，不需要 Python、nbstripout 或 Git 过滤器，也不会自动暂存或提交文件。当前版本为早期测试版本。
+Clean execution counts and timing metadata when saving Jupyter notebooks in VS Code, while keeping code, Markdown, and outputs. Reduce Git diffs caused by rerunning cells.
 
-## 默认行为
+This extension changes the notebook saved on disk. It does not require Python, nbstripout, or Git filters, and never stages or commits files. This is an early testing release.
 
-自动清理默认关闭，需要按项目启用。启用后的默认规则如下：
+## Default behavior
 
-| 内容 | 默认行为 |
+Automatic cleaning is disabled until you enable it for a project. Once enabled:
+
+| Content | Default behavior |
 | --- | --- |
-| 单元格与输出中的 `execution_count` | 设为 `null` |
-| 单元格 metadata 的 `execution`、`ExecuteTime` | 删除这两个字段及其内容 |
-| 代码、Markdown、raw cell | 保留 |
-| 文本、表格、图片、HTML、报错等输出数据 | 保留 |
-| 内核、语言、tags、widgets、图片尺寸等 metadata | 保留 |
-| 未知工具的其他 metadata | 保留 |
-| 附件、单元格 ID 和顺序 | 保留 |
+| Cell and output `execution_count` | Set to `null` |
+| Cell metadata `execution` and `ExecuteTime` | Remove both fields and their contents |
+| Code, Markdown, and raw cells | Preserve |
+| Text, tables, images, HTML, and error output data | Preserve |
+| Kernel, language, tags, widgets, and image dimensions | Preserve |
+| Other metadata, including unknown tool fields | Preserve |
+| Attachments, cell IDs, and cell order | Preserve |
 
-如需保存执行时间，可关闭 `clearExecutionTiming`。清理不会恢复此前已经被其他工具删除的信息。
+Disable `clearExecutionTiming` to keep timing records. Cleaning does not restore information previously removed by other tools.
 
-## 安装与启用
+## Install and enable
 
-目前提供本地 VSIX 安装方式；本文不表示扩展已经上架 Marketplace。
+Local VSIX installation is currently available. These instructions do not imply that the extension is already published on Marketplace.
 
-1. 在 VS Code 扩展视图的 `…` 菜单中选择 **Install from VSIX…**，选择安装包。
-2. 安装或升级后执行 **Developer: Reload Window**。
-3. 打开项目文件夹与其中的 `.ipynb`，使用 Jupyter notebook 编辑器。
-4. 从命令面板执行 **Notebook Save Cleaner: Enable for This Workspace**。
-5. 等待单元格运行结束，再按 `Ctrl+S` 保存。
+1. In the VS Code Extensions view, choose **Install from VSIX…** from the `…` menu and select the package.
+2. Run **Developer: Reload Window** after installing or upgrading.
+3. Open a project folder and an `.ipynb` file in the Jupyter notebook editor.
+4. Run **Notebook Save Cleaner: Enable for This Workspace** from the Command Palette.
+5. Wait for execution to finish, then save with `Ctrl+S` (or `Cmd+S` on macOS).
 
-需要受信任的工作区。将 `.ipynb` 作为普通 JSON 文本打开并保存，不会触发 notebook 保存前清理。
+A trusted workspace is required. Saving an `.ipynb` as plain JSON in the text editor does not trigger notebook cleaning.
 
-也可在项目 `.vscode/settings.json` 中添加：
+Alternatively, add this to the project's `.vscode/settings.json`:
 
 ```json
 {
@@ -40,40 +42,50 @@
 }
 ```
 
-启用命令修改当前 notebook 所属工作区文件夹的设置；没有活动 notebook 时使用第一个工作区文件夹。其他项目不会因此自动启用。
+The enable command updates settings for the active notebook's workspace folder, or the first workspace folder when no notebook is active. It does not enable cleaning in other projects.
 
-## 命令
+## Commands
 
-| 命令面板名称 | 作用 |
+| Command Palette entry | Action |
 | --- | --- |
-| `Notebook Save Cleaner: Enable for This Workspace` | 为当前项目启用保存前清理 |
-| `Notebook Save Cleaner: Clean Current Notebook` | 按当前设置清理活动 notebook；有清理修改时保存 |
+| `Notebook Save Cleaner: Enable for This Workspace` | Enable automatic cleaning for the project |
+| `Notebook Save Cleaner: Clean Current Notebook` | Clean the active notebook using its settings; save if cleaning makes changes |
 
-手动清理不要求 `enabled` 为 `true`，但仍遵循清理选项和运行状态检查。要暂停自动清理，将 `enabled` 设为 `false`，或将 `trigger` 设为 `manual`。
+Manual cleaning works even when `enabled` is `false`, but still respects cleaning settings and execution checks. Set `enabled` to `false` or `trigger` to `manual` to stop automatic cleaning.
 
-## 配置
+## Settings
 
-在 VS Code 设置中搜索 `notebookSaveCleaner`。所有选项均支持工作区文件夹级别配置。
+Search for `notebookSaveCleaner` in VS Code settings. All options support workspace-folder configuration. Each key below has the prefix `notebookSaveCleaner.`.
 
-下表中的键都以 `notebookSaveCleaner.` 开头：
-
-| 配置键 | 默认值 | 说明 |
+| Key | Default | Description |
 | --- | --- | --- |
-| `enabled` | `false` | 是否启用自动清理 |
-| `trigger` | `"onSave"` | `onSave` 或 `manual`；保存触发包括手动保存和自动保存 |
-| `clearExecutionCounts` | `true` | 清理单元格及输出执行计数 |
-| `clearExecutionTiming` | `true` | 删除 cell metadata 中的 `execution` 和 `ExecuteTime` |
-| `clearNotebookMetadata` | `false` | 开启后，仅保留 notebook metadata 白名单中的键 |
-| `preserveNotebookMetadata` | `["kernelspec", "language_info", "widgets"]` | notebook metadata 白名单 |
-| `clearCellMetadata` | `false` | 开启后，仅保留 cell metadata 白名单中的键 |
-| `preserveCellMetadata` | `["tags", "vscode"]` | cell metadata 白名单 |
-| `clearOutputMetadata` | `false` | 开启后，仅保留 output metadata 白名单中的键；不删除输出数据 |
-| `preserveOutputMetadata` | `[]` | output metadata 白名单 |
-| `skipWhileRunning` | `true` | 检测到执行中或内核非空闲时跳过清理 |
+| `enabled` | `false` | Enable automatic cleaning |
+| `trigger` | `"onSave"` | `onSave` or `manual`; on-save cleaning includes explicit saves and Auto Save |
+| `clearExecutionCounts` | `true` | Clear cell and output execution counts |
+| `clearExecutionTiming` | `true` | Remove cell metadata `execution` and `ExecuteTime` |
+| `languageInfoMode` | `"preserve"` | Keep full language information, or use `nameOnly` to keep only `language_info.name` |
+| `clearNotebookMetadata` | `false` | Keep only allowed notebook metadata keys when enabled |
+| `preserveNotebookMetadata` | `["kernelspec", "language_info", "widgets"]` | Notebook metadata allowlist |
+| `clearCellMetadata` | `false` | Keep only allowed cell metadata keys when enabled |
+| `preserveCellMetadata` | `["tags", "vscode"]` | Cell metadata allowlist |
+| `clearOutputMetadata` | `false` | Keep only allowed output metadata keys when enabled; output data is retained |
+| `preserveOutputMetadata` | `[]` | Output metadata allowlist |
+| `skipWhileRunning` | `true` | Skip cleaning when execution is detected or the kernel is not idle |
 
-三个 metadata 白名单仅在对应的 `clear*Metadata` 开关开启时生效，匹配顶层键，不支持通配符或嵌套路径。执行时间清理是独立规则：即使将 `execution` 放入白名单，只要 `clearExecutionTiming` 仍为 `true`，它也会被删除。
+Allowlists apply only when the corresponding `clear*Metadata` option is enabled. They match top-level keys, without wildcard or nested-path support. Timing cleanup is independent: `execution` is still removed when `clearExecutionTiming` is `true`, even if it appears in the cell allowlist.
 
-例如，只清理执行计数，保留执行时间和全部 metadata：
+To avoid diffs from language versions and derived editor fields:
+
+```json
+{
+  "notebookSaveCleaner.enabled": true,
+  "notebookSaveCleaner.languageInfoMode": "nameOnly"
+}
+```
+
+On save, language information becomes, for example, `{"name":"python"}`. This option does not affect kernel information or other metadata. The default, `preserve`, keeps existing behavior. Missing or invalid language names are not invented. If notebook metadata cleanup removes `language_info` via its allowlist, it takes precedence; the field is not added back. Switching modes can create a one-time diff to review and establish as a new baseline.
+
+To clear only counts while preserving timing and all metadata:
 
 ```json
 {
@@ -86,46 +98,45 @@
 }
 ```
 
-## 配合 Git 使用
+## Using Git
 
-建议先完成一次运行，等待结束、保存并审阅差异，再提交作为基准。之后重复运行相同代码，只要输出和其他保留字段不变，保存后通常不会产生新差异。
+Run the notebook, wait for completion, save, review the changes, and commit a baseline. Subsequent reruns should produce no new diff if outputs and other retained fields remain unchanged.
 
-以下变化仍会正常显示：
+Changes to code, Markdown, random or time-dependent outputs, training results, images, tags, widget state, and other retained metadata remain visible. A kernel may also populate language information on its first run or update environment details later.
 
-- 代码或 Markdown 修改。
-- 随机数、当前时间、训练结果、图片等实际输出变化。
-- 内核首次补齐 `language_info`，或更换环境后的语言、内核信息变化。
-- tags、控件状态或其他保留的 metadata 变化。
+The extension does not hide these changes. If you also use a Git clean filter, make sure its policy matches your intended behavior: filters can make staged content differ from local files. This extension does not install, remove, or configure Git filters.
 
-扩展不会隐藏这些差异。如果同时使用 Git clean 过滤器，应确认两者规则一致；过滤器可能令暂存区内容与本地文件不同。扩展本身不会安装、卸载或修改 Git 过滤器。
+## Saving during execution and known limitations
 
-## 运行中保存与已知限制
+- When running cells are detected, cleaning is skipped but saving continues. Save again after execution ends; the extension does not schedule another cleanup when the kernel becomes idle.
+- Execution detection uses VS Code events and the kernel API of an already-active Jupyter extension. Other kernel providers, or execution started before activation, may not be fully detected.
+- Concurrent notebook changes cause cleaning to be skipped. VS Code may also skip save participants during shutdown or when their time budget is exhausted. This extension is not a commit validator.
+- Cleaning output counts or metadata replaces affected cells through the VS Code API. Source and output data are preserved, but output views may be rebuilt.
+- Large notebooks, interactive widgets, remote development, and different VS Code versions need further real-world testing. Browser-based VS Code support is not currently declared.
 
-- 默认在检测到执行中时跳过清理，保存本身仍会继续。结束后请再次保存；不会在内核空闲时主动安排一次清理。
-- 运行状态来自 VS Code 执行事件，以及已激活 Jupyter 扩展提供的 kernel API。其他 kernel provider 或扩展激活前已经开始的执行，可能无法被完整识别。
-- 清理期间 notebook 发生变化时，会放弃本次清理。VS Code 在关闭或保存事件超时等情况下也可能跳过保存处理，因此本扩展不是提交校验器。
-- 清理输出执行计数或输出 metadata 时，会通过 VS Code API 替换受影响的单元格。源代码和输出数据会保留，但输出显示可能重建。
-- 大型 notebook、交互式 widgets、远程开发和不同 VS Code 版本仍需更多实际使用验证；目前未声明支持浏览器版 VS Code。
+If counts remain after saving, check that cleaning is enabled and execution has finished. Open **View → Output → Notebook Save Cleaner** for skip and error messages. Runtime notifications and logs are currently in Chinese.
 
-若保存后仍有执行计数，先检查项目是否启用、是否完成运行，并在 **View → Output** 中选择 **Notebook Save Cleaner** 查看跳过或失败原因。
+## Data and privacy
 
-## 数据与隐私
+The extension adds no telemetry, uploads no notebook content, and makes no network requests of its own. Cleaning runs in the extension host through VS Code's notebook API. Execution checks may call an active Jupyter extension. The extension does not execute notebook code.
 
-扩展不添加遥测，不上传 notebook 内容，也不自行发起网络请求。清理通过 VS Code 的 notebook API 在扩展宿主内完成；运行状态检查可能调用已激活的 Jupyter 扩展。扩展不执行 notebook 中的代码。
+## Development, batch normalization, and feedback
 
-## 开发、批量规范化与反馈
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development and testing instructions and [CHANGELOG.md](CHANGELOG.md) for release notes. These supporting documents are currently in Chinese.
 
-开发和测试方法见 [CONTRIBUTING.md](CONTRIBUTING.md)，版本变化见 [CHANGELOG.md](CHANGELOG.md)。
-
-源码仓库提供一次性规范化脚本，使用与扩展相同的默认清理规则：
+The source repository includes a one-time normalization script using the extension's default policy:
 
 ```sh
 node scripts/normalize.js path/to/notebook.ipynb another/notebook.ipynb
 ```
 
-该脚本支持 nbformat 4，会直接写回指定文件并可能调整 JSON 排版；不会读取 VS Code 设置、判断内核状态或执行 Git 操作。请在文件保存且运行结束后使用，执行后审阅差异。
+The script supports nbformat 4 and writes changes directly to the specified files, potentially changing JSON formatting. It does not read VS Code settings, check execution state, or run Git commands. Use it after saving files and finishing execution, then review the diff.
 
-报告问题时，请提供 VS Code、Jupyter 扩展和本扩展的版本，相关设置、复现步骤及去除敏感内容的最小 notebook。涉及运行问题时，请说明是否启用了自动保存以及使用的 kernel provider。
+For bug reports, include VS Code, Jupyter, and extension versions, relevant settings, reproduction steps, and a minimal notebook without sensitive content. For execution-related issues, describe the kernel provider and whether Auto Save is enabled.
+
+## Author
+
+[morty6688](https://github.com/morty6688)
 
 ## License
 

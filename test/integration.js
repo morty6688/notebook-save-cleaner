@@ -16,7 +16,7 @@ async function run() {
     await config.update('skipWhileRunning', true, vscode.ConfigurationTarget.Workspace);
     const original = {
       nbformat: 4, nbformat_minor: 5,
-      metadata: { kernelspec: { name: 'python3', display_name: 'Python 3', language: 'python' }, language_info: { name: 'python' }, widgets: { state: {} }, noise: 42 },
+      metadata: { kernelspec: { name: 'python3', display_name: 'Python 3', language: 'python' }, language_info: { name: 'python', version: '3.12', file_extension: '.py' }, widgets: { state: {} }, noise: 42 },
       cells: [
         { cell_type: 'code', id: 'stable-code', metadata: { tags: ['keep'], noise: 1, execution: { 'iopub.execute_input': 'now' }, ExecuteTime: { start_time: 'now' } }, source: ['print(2)'], execution_count: 9, outputs: [
           { output_type: 'execute_result', execution_count: 9, data: { 'text/plain': ['2'], 'text/html': ['<b>2</b>'] }, metadata: { noise: true } },
@@ -53,6 +53,14 @@ async function run() {
     assert.equal(saved.metadata.noise, 42);
     assert.equal(buildEdits(vscode, nb, defaults).count, 0, 'cleaning should be idempotent');
 
+    assert.deepEqual(saved.metadata.language_info, original.metadata.language_info, 'default preserves language details');
+    await config.update('languageInfoMode', 'nameOnly', vscode.ConfigurationTarget.Workspace);
+    await vscode.commands.executeCommand('notebookSaveCleaner.clean');
+    const nameOnly = JSON.parse(await fs.readFile(uri.fsPath, 'utf8'));
+    assert.deepEqual(nameOnly.metadata.language_info, { name: 'python' });
+    assert.deepEqual(nameOnly.metadata.kernelspec, saved.metadata.kernelspec);
+    assert.deepEqual(nameOnly.cells, saved.cells, 'language cleanup must not change cells or outputs');
+
     const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
     git('init', '-q'); git('config', 'user.name', 'Cleaner Test'); git('config', 'user.email', 'test@example.invalid');
     git('add', 'test.ipynb'); git('commit', '-qm', 'baseline');
@@ -61,7 +69,10 @@ async function run() {
     replacement.metadata = { ...cell.metadata, execution_count: 123, metadata: { ...cell.metadata.metadata, execution: { 'iopub.execute_input': 'later' }, ExecuteTime: { start_time: 'later' } } };
     replacement.outputs = cell.outputs.map((o, i) => new vscode.NotebookCellOutput(o.items, { ...o.metadata, ...(i === 0 ? { executionCount: 123 } : {}) }));
     const rerun = new vscode.WorkspaceEdit();
-    rerun.set(uri, [vscode.NotebookEdit.replaceCells(new vscode.NotebookRange(0, 1), [replacement])]);
+    rerun.set(uri, [
+      vscode.NotebookEdit.replaceCells(new vscode.NotebookRange(0, 1), [replacement]),
+      vscode.NotebookEdit.updateNotebookMetadata({ ...nb.metadata, metadata: { ...nb.metadata.metadata, language_info: { name: 'python', version: '3.13', codemirror_mode: { name: 'ipython', version: 3 }, mimetype: 'text/x-python' } } })
+    ]);
     await vscode.workspace.applyEdit(rerun);
     await nb.save();
     assert.equal(git('status', '--porcelain', '--', 'test.ipynb'), '', 'same outputs rerun should be Git-clean WITHOUT git add or filters');

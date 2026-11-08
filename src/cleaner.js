@@ -3,7 +3,7 @@ const { isDeepStrictEqual } = require('node:util');
 
 const defaults = {
   enabled: false, trigger: 'onSave', clearExecutionCounts: true,
-  clearExecutionTiming: true,
+  clearExecutionTiming: true, languageInfoMode: 'preserve',
   clearNotebookMetadata: false, preserveNotebookMetadata: ['kernelspec', 'language_info', 'widgets'],
   clearCellMetadata: false, preserveCellMetadata: ['tags', 'vscode'],
   clearOutputMetadata: false, preserveOutputMetadata: [], skipWhileRunning: true
@@ -11,6 +11,19 @@ const defaults = {
 
 function keepKeys(metadata, keys) {
   return Object.fromEntries(Object.entries(metadata || {}).filter(([key]) => keys.includes(key)));
+}
+
+function cleanNotebookMetadata(metadata, options) {
+  const result = options.clearNotebookMetadata
+    ? keepKeys(metadata, options.preserveNotebookMetadata)
+    : metadata;
+  const language = result?.language_info;
+  if (options.languageInfoMode === 'nameOnly' && language &&
+      typeof language === 'object' && !Array.isArray(language) &&
+      typeof language.name === 'string' && language.name.length > 0) {
+    return { ...result, language_info: { name: language.name } };
+  }
+  return result;
 }
 
 // VS Code's ipynb serializer wraps nbformat metadata inside another metadata object.
@@ -37,8 +50,8 @@ function cleanOutputMetadata(metadata, options) {
 
 function buildEdits(vscode, notebook, options) {
   const edits = [];
-  if (options.clearNotebookMetadata) {
-    const metadata = { ...notebook.metadata, metadata: keepKeys(notebook.metadata.metadata, options.preserveNotebookMetadata) };
+  if (options.clearNotebookMetadata || options.languageInfoMode === 'nameOnly') {
+    const metadata = { ...notebook.metadata, metadata: cleanNotebookMetadata(notebook.metadata.metadata, options) };
     if (!isDeepStrictEqual(metadata, notebook.metadata)) edits.push(vscode.NotebookEdit.updateNotebookMetadata(metadata));
   }
   for (const cell of notebook.getCells()) {
@@ -67,7 +80,7 @@ function buildEdits(vscode, notebook, options) {
 function normalizeNotebook(notebook, options = defaults) {
   const result = structuredClone(notebook);
   if (result.nbformat !== 4 || !Array.isArray(result.cells)) throw new Error('Only nbformat 4 notebooks are supported');
-  if (options.clearNotebookMetadata) result.metadata = keepKeys(result.metadata, options.preserveNotebookMetadata);
+  result.metadata = cleanNotebookMetadata(result.metadata, options);
   for (const cell of result.cells) {
     const clean = cleanCellMetadata(cell, options);
     Object.assign(cell, clean);
@@ -79,4 +92,4 @@ function normalizeNotebook(notebook, options = defaults) {
   return result;
 }
 
-module.exports = { defaults, buildEdits, cleanCellMetadata, cleanOutputMetadata, normalizeNotebook };
+module.exports = { defaults, buildEdits, cleanCellMetadata, cleanOutputMetadata, cleanNotebookMetadata, normalizeNotebook };

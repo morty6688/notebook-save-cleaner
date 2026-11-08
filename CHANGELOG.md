@@ -2,12 +2,18 @@
 
 以下记录对应本地测试版本，不表示这些版本已经发布到 Marketplace。
 
-## Unreleased
+## 0.1.2
+
+### Added
+
+- `languageInfoMode` 设置：默认 `preserve` 保留完整语言信息，可选 `nameOnly` 仅保留 `language_info.name`。
+- 保存集成测试覆盖语言字段补齐后再次清理，保持代码、输出和其他 metadata。
 
 ### Documentation
 
 - 面向公开用户重写 README，说明默认行为、全部配置、Git 基准、隐私及已知限制。
 - 添加开发测试指南和版本记录。
+- README 使用英文首页与中文版本互相切换，作者署名统一为 `morty6688`。
 
 ## 0.1.1
 

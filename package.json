@@ -2,7 +2,7 @@
   "name": "notebook-save-cleaner",
   "displayName": "Notebook Save Cleaner",
   "description": "Clean Jupyter execution counts and metadata on save while keeping outputs.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "morty-local",
   "engines": {
     "vscode": "^1.95.0"
@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "test": "node --test test/unit.test.js",
-    "package": "vsce package --allow-missing-repository"
+    "package": "vsce package --allow-missing-repository --no-rewrite-relative-links"
   },
   "devDependencies": {
     "@vscode/vsce": "^3.6.0"
@@ -126,8 +126,22 @@
           "default": true,
           "scope": "resource",
           "description": "Remove cell metadata.execution and metadata.ExecuteTime timing records. Preserve other metadata by default."
+        },
+        "notebookSaveCleaner.languageInfoMode": {
+          "type": "string",
+          "enum": [
+            "preserve",
+            "nameOnly"
+          ],
+          "default": "preserve",
+          "scope": "resource",
+          "description": "Keep full language_info, or retain only its name. Other notebook metadata is unaffected; the notebook metadata allowlist takes precedence."
         }
       }
     }
+  },
+  "author": {
+    "name": "morty6688",
+    "url": "https://github.com/morty6688"
   }
 }
