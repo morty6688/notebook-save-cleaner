@@ -3,7 +3,7 @@ const { isDeepStrictEqual } = require('node:util');
 
 const defaults = {
   enabled: false, trigger: 'onSave', clearExecutionCounts: true,
-  clearExecutionTiming: true, languageInfoMode: 'preserve',
+  clearExecutionTiming: true, languageInfoMode: 'nameOnly',
   clearNotebookMetadata: false, preserveNotebookMetadata: ['kernelspec', 'language_info', 'widgets'],
   clearCellMetadata: false, preserveCellMetadata: ['tags', 'vscode'],
   clearOutputMetadata: false, preserveOutputMetadata: [], skipWhileRunning: true
@@ -51,8 +51,10 @@ function cleanOutputMetadata(metadata, options) {
 function buildEdits(vscode, notebook, options) {
   const edits = [];
   if (options.clearNotebookMetadata || options.languageInfoMode === 'nameOnly') {
-    const metadata = { ...notebook.metadata, metadata: cleanNotebookMetadata(notebook.metadata.metadata, options) };
-    if (!isDeepStrictEqual(metadata, notebook.metadata)) edits.push(vscode.NotebookEdit.updateNotebookMetadata(metadata));
+    const cleaned = cleanNotebookMetadata(notebook.metadata.metadata, options);
+    if (!isDeepStrictEqual(cleaned, notebook.metadata.metadata)) {
+      edits.push(vscode.NotebookEdit.updateNotebookMetadata({ ...notebook.metadata, metadata: cleaned }));
+    }
   }
   for (const cell of notebook.getCells()) {
     const metadata = cleanCellMetadata(cell.metadata, options);

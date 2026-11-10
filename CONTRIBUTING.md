@@ -17,7 +17,7 @@ npm run package
 安装生成的包后，通过 **Developer: Reload Window** 加载新版本。安装包名称由 `package.json` 中的版本决定：
 
 ```sh
-code --install-extension notebook-save-cleaner-0.1.2.vsix --force
+code --install-extension notebook-save-cleaner-0.1.3.vsix --force
 ```
 
 ## 代码结构
@@ -54,7 +54,7 @@ code --new-window --disable-extensions --disable-workspace-trust `
 
 测试完成后查看 `$runRoot/workspace/result.json`，`passed` 应为 `true`。这里禁用第三方扩展并使用测试 controller；真实 Jupyter 内核行为仍需手动验证。
 
-测试入口目前通过 `morty-local.notebook-save-cleaner` 激活扩展。正式更改 publisher 或扩展名称时，需要同时更新测试中的扩展 ID。
+测试入口目前通过 `morty6688.notebook-save-cleaner` 激活扩展。正式更改 publisher 或扩展名称时，需要同时更新测试中的扩展 ID。
 
 ## 人工验证
 
@@ -73,4 +73,4 @@ code --new-window --disable-extensions --disable-workspace-trust `
 - 使用 `npx vsce ls` 检查打包文件，再生成 VSIX 并测试安装。
 - 检查 `.test-work`、测试 notebook、备份及本地配置没有进入安装包。
 
-当前使用 `--allow-missing-repository --no-rewrite-relative-links` 允许尚无远程仓库时本地打包。设置正式仓库地址后，应移除这两个参数，让发布包中的文档链接指向在线仓库；本地测试包的相对文档链接不能保证在扩展详情页打开。发布身份、图标、Marketplace 页面和上传流程不由测试脚本创建。
+打包使用 `vsce package`，通过 `package.json` 中的 GitHub 仓库地址将 README 的相对链接转换为在线文档链接。发布身份、图标、Marketplace 页面和上传流程不由测试脚本创建。

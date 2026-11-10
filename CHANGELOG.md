@@ -2,6 +2,15 @@
 
 以下记录对应本地测试版本，不表示这些版本已经发布到 Marketplace。
 
+## 0.1.3
+
+- Publisher 改为 `morty6688`，补齐 GitHub 仓库与反馈地址，恢复打包时的文档链接转换。由 `morty-local` 本地版本迁移时，应卸载旧身份的扩展，避免重复清理。
+
+### Changed
+
+- `languageInfoMode` 默认改为 `nameOnly`，保存时仅保留 `language_info.name`。
+- 已显式配置 `preserve` 的用户不受默认值变化影响；首次采用新默认值可能产生一次清理差异。
+
 ## 0.1.2
 
 ### Added

@@ -16,7 +16,8 @@ Automatic cleaning is disabled until you enable it for a project. Once enabled:
 | Cell metadata `execution` and `ExecuteTime` | Remove both fields and their contents |
 | Code, Markdown, and raw cells | Preserve |
 | Text, tables, images, HTML, and error output data | Preserve |
-| Kernel, language, tags, widgets, and image dimensions | Preserve |
+| Language information | Keep only `language_info.name` |
+| Kernel, tags, widgets, and image dimensions | Preserve |
 | Other metadata, including unknown tool fields | Preserve |
 | Attachments, cell IDs, and cell order | Preserve |
 
@@ -63,7 +64,7 @@ Search for `notebookSaveCleaner` in VS Code settings. All options support worksp
 | `trigger` | `"onSave"` | `onSave` or `manual`; on-save cleaning includes explicit saves and Auto Save |
 | `clearExecutionCounts` | `true` | Clear cell and output execution counts |
 | `clearExecutionTiming` | `true` | Remove cell metadata `execution` and `ExecuteTime` |
-| `languageInfoMode` | `"preserve"` | Keep full language information, or use `nameOnly` to keep only `language_info.name` |
+| `languageInfoMode` | `"nameOnly"` | Keep full language information, or use `nameOnly` to keep only `language_info.name` |
 | `clearNotebookMetadata` | `false` | Keep only allowed notebook metadata keys when enabled |
 | `preserveNotebookMetadata` | `["kernelspec", "language_info", "widgets"]` | Notebook metadata allowlist |
 | `clearCellMetadata` | `false` | Keep only allowed cell metadata keys when enabled |
@@ -74,7 +75,7 @@ Search for `notebookSaveCleaner` in VS Code settings. All options support worksp
 
 Allowlists apply only when the corresponding `clear*Metadata` option is enabled. They match top-level keys, without wildcard or nested-path support. Timing cleanup is independent: `execution` is still removed when `clearExecutionTiming` is `true`, even if it appears in the cell allowlist.
 
-To avoid diffs from language versions and derived editor fields:
+Language versions and derived editor fields are removed by default. The equivalent explicit configuration is:
 
 ```json
 {
@@ -83,7 +84,7 @@ To avoid diffs from language versions and derived editor fields:
 }
 ```
 
-On save, language information becomes, for example, `{"name":"python"}`. This option does not affect kernel information or other metadata. The default, `preserve`, keeps existing behavior. Missing or invalid language names are not invented. If notebook metadata cleanup removes `language_info` via its allowlist, it takes precedence; the field is not added back. Switching modes can create a one-time diff to review and establish as a new baseline.
+On save, language information becomes, for example, `{"name":"python"}`. This option does not affect kernel information or other metadata. The default is `nameOnly`. Set `preserve` to keep full language information. Missing or invalid language names are not invented. If notebook metadata cleanup removes `language_info` via its allowlist, it takes precedence; the field is not added back. Switching modes can create a one-time diff to review and establish as a new baseline.
 
 To clear only counts while preserving timing and all metadata:
 
@@ -92,6 +93,7 @@ To clear only counts while preserving timing and all metadata:
   "notebookSaveCleaner.enabled": true,
   "notebookSaveCleaner.clearExecutionCounts": true,
   "notebookSaveCleaner.clearExecutionTiming": false,
+  "notebookSaveCleaner.languageInfoMode": "preserve",
   "notebookSaveCleaner.clearNotebookMetadata": false,
   "notebookSaveCleaner.clearCellMetadata": false,
   "notebookSaveCleaner.clearOutputMetadata": false

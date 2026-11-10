@@ -16,7 +16,8 @@
 | 单元格 metadata 的 `execution`、`ExecuteTime` | 删除这两个字段及其内容 |
 | 代码、Markdown、raw cell | 保留 |
 | 文本、表格、图片、HTML、报错等输出数据 | 保留 |
-| 内核、语言、tags、widgets、图片尺寸等 metadata | 保留 |
+| 语言信息 | 仅保留 `language_info.name` |
+| 内核、tags、widgets、图片尺寸等 metadata | 保留 |
 | 未知工具的其他 metadata | 保留 |
 | 附件、单元格 ID 和顺序 | 保留 |
 
@@ -65,7 +66,7 @@
 | `trigger` | `"onSave"` | `onSave` 或 `manual`；保存触发包括手动保存和自动保存 |
 | `clearExecutionCounts` | `true` | 清理单元格及输出执行计数 |
 | `clearExecutionTiming` | `true` | 删除 cell metadata 中的 `execution` 和 `ExecuteTime` |
-| `languageInfoMode` | `"preserve"` | `preserve` 保留完整语言信息；`nameOnly` 仅保留 `language_info.name` |
+| `languageInfoMode` | `"nameOnly"` | `preserve` 保留完整语言信息；`nameOnly` 仅保留 `language_info.name` |
 | `clearNotebookMetadata` | `false` | 开启后，仅保留 notebook metadata 白名单中的键 |
 | `preserveNotebookMetadata` | `["kernelspec", "language_info", "widgets"]` | notebook metadata 白名单 |
 | `clearCellMetadata` | `false` | 开启后，仅保留 cell metadata 白名单中的键 |
@@ -76,7 +77,7 @@
 
 三个 metadata 白名单仅在对应的 `clear*Metadata` 开关开启时生效，匹配顶层键，不支持通配符或嵌套路径。执行时间清理是独立规则：即使将 `execution` 放入白名单，只要 `clearExecutionTiming` 仍为 `true`，它也会被删除。
 
-要避免语言版本及编辑器派生字段造成差异，可设置：
+默认已清理语言版本及编辑器派生字段，等价的显式配置为：
 
 ```json
 {
@@ -85,7 +86,7 @@
 }
 ```
 
-保存后，`language_info` 会变为例如 `{"name":"python"}`；内核信息与其他 metadata 不受此选项影响。默认 `preserve` 保持原行为。缺少有效 `name` 时不创建或猜测语言信息。如果开启 notebook metadata 白名单清理却未保留 `language_info`，白名单删除优先，不会重新添加该字段。首次切换模式会产生一次清理差异，需要审阅后建立新基准。
+保存后，`language_info` 会变为例如 `{"name":"python"}`；内核信息与其他 metadata 不受此选项影响。默认使用 `nameOnly`；设为 `preserve` 可保留完整语言信息。缺少有效 `name` 时不创建或猜测语言信息。如果开启 notebook metadata 白名单清理却未保留 `language_info`，白名单删除优先，不会重新添加该字段。首次切换模式会产生一次清理差异，需要审阅后建立新基准。
 
 例如，只清理执行计数，保留执行时间和全部 metadata：
 
@@ -94,6 +95,7 @@
   "notebookSaveCleaner.enabled": true,
   "notebookSaveCleaner.clearExecutionCounts": true,
   "notebookSaveCleaner.clearExecutionTiming": false,
+  "notebookSaveCleaner.languageInfoMode": "preserve",
   "notebookSaveCleaner.clearNotebookMetadata": false,
   "notebookSaveCleaner.clearCellMetadata": false,
   "notebookSaveCleaner.clearOutputMetadata": false

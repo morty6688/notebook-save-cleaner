@@ -10,7 +10,7 @@ async function run() {
   const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
   const resultPath = path.join(root, 'result.json');
   try {
-    await vscode.extensions.getExtension('morty-local.notebook-save-cleaner').activate();
+    await vscode.extensions.getExtension('morty6688.notebook-save-cleaner').activate();
     const config = vscode.workspace.getConfiguration('notebookSaveCleaner');
     await config.update('enabled', true, vscode.ConfigurationTarget.Workspace);
     await config.update('skipWhileRunning', true, vscode.ConfigurationTarget.Workspace);
@@ -53,7 +53,12 @@ async function run() {
     assert.equal(saved.metadata.noise, 42);
     assert.equal(buildEdits(vscode, nb, defaults).count, 0, 'cleaning should be idempotent');
 
-    assert.deepEqual(saved.metadata.language_info, original.metadata.language_info, 'default preserves language details');
+    assert.deepEqual(saved.metadata.language_info, { name: 'python' }, 'default keeps only language name');
+    await config.update('languageInfoMode', 'preserve', vscode.ConfigurationTarget.Workspace);
+    const restoreLanguage = new vscode.WorkspaceEdit();
+    restoreLanguage.set(uri, [vscode.NotebookEdit.updateNotebookMetadata({ ...nb.metadata, metadata: { ...nb.metadata.metadata, language_info: original.metadata.language_info } })]);
+    await vscode.workspace.applyEdit(restoreLanguage); await nb.save();
+    assert.deepEqual(JSON.parse(await fs.readFile(uri.fsPath, 'utf8')).metadata.language_info, original.metadata.language_info, 'explicit preserve retains details');
     await config.update('languageInfoMode', 'nameOnly', vscode.ConfigurationTarget.Workspace);
     await vscode.commands.executeCommand('notebookSaveCleaner.clean');
     const nameOnly = JSON.parse(await fs.readFile(uri.fsPath, 'utf8'));
@@ -103,7 +108,7 @@ async function run() {
     const controller = vscode.notebooks.createNotebookController('cleaner-test', 'jupyter-notebook', 'Cleaner Test');
     controller.supportedLanguages = ['python'];
     controller.supportsExecutionOrder = true;
-    await vscode.commands.executeCommand('notebook.selectKernel', { id: controller.id, extension: 'morty-local.notebook-save-cleaner' });
+    await vscode.commands.executeCommand('notebook.selectKernel', { id: controller.id, extension: 'morty6688.notebook-save-cleaner' });
     const execution = controller.createNotebookCellExecution(nb.cellAt(0));
     execution.start(Date.now()); execution.executionOrder = 789;
     await execution.replaceOutput([new vscode.NotebookCellOutput([vscode.NotebookCellOutputItem.text('running')], { outputType: 'execute_result', executionCount: 789, metadata: {} })]);

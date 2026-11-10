@@ -7,8 +7,9 @@ test('language nameOnly preserves other metadata and never mutates input', () =>
   const { cleanNotebookMetadata, normalizeNotebook } = require('../src/cleaner');
   const metadata = { language_info: { name: 'python', version: '3.12', codemirror_mode: { name: 'ipython', version: 3 } }, kernelspec: { name: 'python3' }, custom: { keep: true } };
   const options = { ...defaults, languageInfoMode: 'nameOnly' };
-  assert.deepEqual(cleanNotebookMetadata(metadata, defaults), metadata);
+  assert.deepEqual(cleanNotebookMetadata(metadata, { ...defaults, languageInfoMode: 'preserve' }), metadata);
   const cleaned = cleanNotebookMetadata(metadata, options);
+  assert.deepEqual(cleanNotebookMetadata(metadata, defaults), cleaned);
   assert.deepEqual(cleaned, { ...metadata, language_info: { name: 'python' } });
   assert.equal(metadata.language_info.version, '3.12');
   assert.deepEqual(cleanNotebookMetadata(cleaned, options), cleaned);
